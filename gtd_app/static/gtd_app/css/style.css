@@ -1,0 +1,48 @@
+/* General Styles */
+body {
+    background-color: #f8f9fa;
+}
+
+/* Quick Capture Styles */
+.quick-capture {
+    max-width: 600px;
+    margin: 2rem auto;
+}
+
+.quick-capture input {
+    font-size: 1.2rem;
+    padding: 1rem;
+}
+
+/* Task Cards */
+.task-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Sprint Board */
+.sprint-column {
+    background: #f1f3f5;
+    border-radius: 8px;
+    padding: 1rem;
+    min-height: 400px;
+}
+
+/* Retrospective */
+.retro-section {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Archives */
+.archive-filters {
+    background: white;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+} 

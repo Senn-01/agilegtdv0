@@ -1,0 +1,174 @@
+{% extends 'gtd_app/base.html' %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                    <div>
+                        <h2 class="h4 mb-0 text-gray-800">Current Sprint</h2>
+                        <small class="text-muted">
+                            Started: {{ sprint.start_date|date:"M d, Y" }} | 
+                            Duration: {{ sprint.duration_days }} days
+                        </small>
+                    </div>
+                    <a href="{% url 'retrospective' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-graph-up"></i> View Analytics
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- To Do Column -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-light">
+                    <h3 class="h5 mb-0">To Do</h3>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush" id="todo">
+                        {% for task in todo_tasks %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h5 class="mb-0">{{ task.title }}</h5>
+                                    {% if task.project %}
+                                        <span class="badge bg-info">{{ task.project.title }}</span>
+                                    {% endif %}
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span class="badge rounded-pill 
+                                            {% if task.category == 'Self-Improvement' %}bg-success
+                                            {% elif task.category == 'Personal Work' %}bg-primary
+                                            {% elif task.category == 'Leisure' %}bg-info
+                                            {% else %}bg-warning{% endif %}">
+                                            {{ task.category }}
+                                        </span>
+                                        <small class="text-muted ms-2">{{ task.estimated_time }}</small>
+                                    </div>
+                                    <div class="btn-group">
+                                        <form method="post" class="d-inline">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="update_status">
+                                            <input type="hidden" name="item_type" value="{% if task.project %}project_task{% else %}task{% endif %}">
+                                            <input type="hidden" name="item_id" value="{{ task.id }}">
+                                            <input type="hidden" name="status" value="in_progress">
+                                            <button type="submit" class="btn btn-sm btn-outline-primary">Start</button>
+                                        </form>
+                                        <form method="post" class="d-inline ms-1">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="move_to_backlog">
+                                            <input type="hidden" name="item_type" value="{% if task.project %}project_task{% else %}task{% endif %}">
+                                            <input type="hidden" name="item_id" value="{{ task.id }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-secondary">Back</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- In Progress Column -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-info text-white">
+                    <h3 class="h5 mb-0">In Progress</h3>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush" id="in_progress">
+                        {% for task in in_progress_tasks %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h5 class="mb-0">{{ task.title }}</h5>
+                                    {% if task.project %}
+                                        <span class="badge bg-info">{{ task.project.title }}</span>
+                                    {% endif %}
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span class="badge rounded-pill 
+                                            {% if task.category == 'Self-Improvement' %}bg-success
+                                            {% elif task.category == 'Personal Work' %}bg-primary
+                                            {% elif task.category == 'Leisure' %}bg-info
+                                            {% else %}bg-warning{% endif %}">
+                                            {{ task.category }}
+                                        </span>
+                                        <small class="text-muted ms-2">{{ task.estimated_time }}</small>
+                                    </div>
+                                    <div class="btn-group">
+                                        <form method="post" class="d-inline">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="update_status">
+                                            <input type="hidden" name="item_type" value="{% if task.project %}project_task{% else %}task{% endif %}">
+                                            <input type="hidden" name="item_id" value="{{ task.id }}">
+                                            <input type="hidden" name="status" value="done">
+                                            <button type="submit" class="btn btn-sm btn-outline-success">Complete</button>
+                                        </form>
+                                        <form method="post" class="d-inline ms-1">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="update_status">
+                                            <input type="hidden" name="item_type" value="{% if task.project %}project_task{% else %}task{% endif %}">
+                                            <input type="hidden" name="item_id" value="{{ task.id }}">
+                                            <input type="hidden" name="status" value="todo">
+                                            <button type="submit" class="btn btn-sm btn-outline-secondary">Back</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Done Column -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-success text-white">
+                    <h3 class="h5 mb-0">Done</h3>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush" id="done">
+                        {% for task in done_tasks %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h5 class="mb-0">{{ task.title }}</h5>
+                                    {% if task.project %}
+                                        <span class="badge bg-info">{{ task.project.title }}</span>
+                                    {% endif %}
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span class="badge rounded-pill 
+                                            {% if task.category == 'Self-Improvement' %}bg-success
+                                            {% elif task.category == 'Personal Work' %}bg-primary
+                                            {% elif task.category == 'Leisure' %}bg-info
+                                            {% else %}bg-warning{% endif %}">
+                                            {{ task.category }}
+                                        </span>
+                                        <small class="text-muted ms-2">{{ task.estimated_time }}</small>
+                                    </div>
+                                    <form method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="update_status">
+                                        <input type="hidden" name="item_type" value="{% if task.project %}project_task{% else %}task{% endif %}">
+                                        <input type="hidden" name="item_id" value="{{ task.id }}">
+                                        <input type="hidden" name="status" value="in_progress">
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary">Back</button>
+                                    </form>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

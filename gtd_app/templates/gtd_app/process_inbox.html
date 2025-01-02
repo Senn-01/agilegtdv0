@@ -1,0 +1,67 @@
+{% extends 'gtd_app/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Process Inbox</h1>
+    
+    {% if inbox_items %}
+        <div class="list-group">
+            {% for item in inbox_items %}
+                <div class="list-group-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-1">{{ item.content }}</h5>
+                        <small>Created: {{ item.created_at|date }}</small>
+                    </div>
+                    <div class="btn-group mt-2" role="group">
+                        <button class="btn btn-success process-action" 
+                                data-action="do_it_now"
+                                data-id="{{ item.id }}">
+                            Do It Now
+                        </button>
+                        <button class="btn btn-danger process-action" 
+                                data-action="eliminate"
+                                data-id="{{ item.id }}">
+                            Eliminate
+                        </button>
+                        <button class="btn btn-primary process-action" 
+                                data-action="convert_to_project"
+                                data-id="{{ item.id }}">
+                            Convert to Project
+                        </button>
+                        <button class="btn btn-info process-action" 
+                                data-action="convert_to_task"
+                                data-id="{{ item.id }}">
+                            Convert to Task
+                        </button>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>No unprocessed items in your inbox.</p>
+    {% endif %}
+    
+    <div class="mt-4">
+        <a href="{% url 'gtd_app:home' %}" class="btn btn-secondary">Back to Home</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.querySelectorAll('.process-action').forEach(button => {
+    button.addEventListener('click', function() {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.innerHTML = `
+            {% csrf_token %}
+            <input type="hidden" name="action" value="${this.dataset.action}">
+            <input type="hidden" name="item_id" value="${this.dataset.id}">
+        `;
+        document.body.appendChild(form);
+        form.submit();
+    });
+});
+</script>
+{% endblock %} 

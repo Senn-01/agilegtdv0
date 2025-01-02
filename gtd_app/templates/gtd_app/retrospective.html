@@ -1,0 +1,256 @@
+{% extends 'gtd_app/base.html' %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    {% if active_sprint %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                    <div>
+                        <h2 class="h4 mb-0 text-gray-800">Sprint Analytics</h2>
+                        <small class="text-muted">
+                            Started: {{ sprint_analytics.start_date|date:"M d, Y" }} | 
+                            {{ sprint_analytics.days_remaining }} days remaining
+                        </small>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        <!-- Key Metrics -->
+                        <div class="col-md-4">
+                            <div class="d-flex flex-column">
+                                <div class="mb-4">
+                                    <span class="h1 mb-0">{{ sprint_analytics.completion_rate }}%</span>
+                                    <span class="text-muted d-block">Completion Rate</span>
+                                </div>
+                                <div class="mb-4">
+                                    <span class="h2 mb-0">{{ sprint_analytics.average_efficiency }}</span>
+                                    <span class="text-muted d-block">Average Efficiency Score</span>
+                                </div>
+                                <div class="mb-4">
+                                    <span class="h3 mb-0">{{ sprint_analytics.completed_tasks }} / {{ sprint_analytics.total_tasks }}</span>
+                                    <span class="text-muted d-block">Tasks Completed</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Status Distribution -->
+                        <div class="col-md-4">
+                            <h5 class="mb-3">Status Distribution</h5>
+                            <table class="table table-sm">
+                                <tbody>
+                                    <tr>
+                                        <td class="text-muted">To Do</td>
+                                        <td class="text-end">{{ sprint_analytics.todo_tasks }}</td>
+                                        <td class="text-end text-muted">{% if sprint_analytics.total_tasks > 0 %}{% widthratio sprint_analytics.todo_tasks sprint_analytics.total_tasks 100 %}{% else %}0{% endif %}%</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted">In Progress</td>
+                                        <td class="text-end">{{ sprint_analytics.in_progress_tasks }}</td>
+                                        <td class="text-end text-muted">{% if sprint_analytics.total_tasks > 0 %}{% widthratio sprint_analytics.in_progress_tasks sprint_analytics.total_tasks 100 %}{% else %}0{% endif %}%</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted">Completed</td>
+                                        <td class="text-end">{{ sprint_analytics.completed_tasks }}</td>
+                                        <td class="text-end text-muted">{% if sprint_analytics.total_tasks > 0 %}{% widthratio sprint_analytics.completed_tasks sprint_analytics.total_tasks 100 %}{% else %}0{% endif %}%</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Category Analysis -->
+                        <div class="col-md-4">
+                            <h5 class="mb-3">Category Analysis</h5>
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Category</th>
+                                        <th class="text-end">Done/Total</th>
+                                        <th class="text-end">Rate</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for category, stats in sprint_analytics.tasks_by_category.items %}
+                                    <tr>
+                                        <td class="text-muted">{{ category }}</td>
+                                        <td class="text-end">{{ stats.completed }}/{{ stats.total }}</td>
+                                        <td class="text-end">{% widthratio stats.completed stats.total 100 %}%</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h2 class="h4 mb-0 text-gray-800">Sprint Retrospective</h2>
+                </div>
+                <div class="card-body">
+                    {% if active_sprint %}
+                        <form method="post" class="mb-4">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="finalize_sprint">
+                            
+                            <div class="mb-4">
+                                <h5>Completed Tasks Analysis</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Title</th>
+                                                <th>Category</th>
+                                                <th class="text-end">Cost</th>
+                                                <th class="text-end">Benefit</th>
+                                                <th class="text-end">Efficiency</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for task in completed_tasks %}
+                                            <tr>
+                                                <td>{{ task.title }}</td>
+                                                <td>{{ task.category }}</td>
+                                                <td class="text-end">{{ task.cost }}</td>
+                                                <td class="text-end">{{ task.benefit }}</td>
+                                                <td class="text-end">{{ task.efficiency_score }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Achievements</label>
+                                <textarea class="form-control" name="achievements" rows="3" required></textarea>
+                                <div class="form-text">What went well? What did we accomplish?</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Challenges</label>
+                                <textarea class="form-control" name="challenges" rows="3" required></textarea>
+                                <div class="form-text">What could have gone better? What obstacles did we face?</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Action Items</label>
+                                <textarea class="form-control" name="action_items" rows="3" required></textarea>
+                                <div class="form-text">What specific actions will we take to improve?</div>
+                            </div>
+                            
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle me-2"></i>
+                                Finalizing the sprint will:
+                                <ul class="mb-0">
+                                    <li>Archive all tasks (both completed and incomplete)</li>
+                                    <li>Create a retrospective record</li>
+                                    <li>Close the current sprint</li>
+                                </ul>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">
+                                Finalize Sprint and Create Retrospective
+                            </button>
+                        </form>
+                    {% else %}
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            No active sprint found. Start a new sprint to enable retrospective.
+                        </div>
+                    {% endif %}
+                    
+                    {% if past_retrospectives %}
+                        <h5 class="mt-4 mb-3">Historical Sprint Data</h5>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Sprint Date</th>
+                                        <th class="text-end">Tasks</th>
+                                        <th class="text-end">Completion</th>
+                                        <th class="text-end">Efficiency</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for retro in past_retrospectives %}
+                                    <tr>
+                                        <td>{{ retro.sprint.start_date|date:"M d, Y" }}</td>
+                                        <td class="text-end">{{ retro.completed_tasks }}/{{ retro.total_tasks }}</td>
+                                        <td class="text-end">{{ retro.completion_rate }}%</td>
+                                        <td class="text-end">{{ retro.average_efficiency }}</td>
+                                        <td class="text-end">
+                                            <button type="button" class="btn btn-sm btn-outline-secondary" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#retroModal{{ retro.id }}">
+                                                Details
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% for retro in past_retrospectives %}
+<div class="modal fade" id="retroModal{{ retro.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title">
+                    Sprint Analysis
+                    <small class="text-muted d-block">{{ retro.sprint.start_date|date:"M d, Y" }}</small>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-4">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <div class="h2 mb-0">{{ retro.completion_rate }}%</div>
+                            <small class="text-muted">Completion Rate</small>
+                        </div>
+                        <div class="col-6">
+                            <div class="h2 mb-0">{{ retro.average_efficiency }}</div>
+                            <small class="text-muted">Efficiency Score</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <h6>Key Achievements</h6>
+                    <p class="mb-0">{{ retro.achievements|linebreaksbr }}</p>
+                </div>
+                
+                <div class="mb-3">
+                    <h6>Identified Challenges</h6>
+                    <p class="mb-0">{{ retro.challenges|linebreaksbr }}</p>
+                </div>
+                
+                <div class="mb-3">
+                    <h6>Action Items</h6>
+                    <p class="mb-0">{{ retro.action_items|linebreaksbr }}</p>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-link text-muted" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %} 
